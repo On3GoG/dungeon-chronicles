@@ -15,6 +15,7 @@ export interface EngineResult {
   roll: RollResult | null;
   events: string[];          // что произошло, для рассказчика и журнала
   enemyActions: string[];
+  after: string[];           // итоги после хода врагов: поражение, новый уровень, победа
   notes: string[];           // пояснения игроку
   correction_note: string | null;
   moved: string | null;      // id новой локации
@@ -232,7 +233,7 @@ function handleDefeat(state: GameState, res: EngineResult): void {
   state.locationId = safe.id;
   state.locations[safe.id].visited = true;
   res.defeated = true;
-  res.events.push(`${state.hero.name} падает без сознания. Очнулся в безопасном месте: ${safe.name}. Потеряно золота: ${lost}. Хиты ${state.hero.hp}/${state.hero.maxHp}.`);
+  res.after.push(`${state.hero.name} падает без сознания. Очнулся в безопасном месте: ${safe.name}. Потеряно золота: ${lost}. Хиты ${state.hero.hp}/${state.hero.maxHp}.`);
 }
 
 function checkLevelUp(state: GameState, res: EngineResult): void {
@@ -249,12 +250,12 @@ function checkLevelUp(state: GameState, res: EngineResult): void {
     if (hero.level >= 3) hero.slots['2'] = { max: 2, used: 0 };
   }
   res.levelUp = hero.level;
-  res.events.push(`Новый уровень: ${hero.level}! Максимум хитов +${gain}${cls.castingAbility ? ', ячейки заклинаний восстановлены' : ''}.`);
+  res.after.push(`Новый уровень: ${hero.level}! Максимум хитов +${gain}${cls.castingAbility ? ', ячейки заклинаний восстановлены' : ''}.`);
 }
 
 export function resolveTurn(state: GameState, d: ArbiterDecision, rng: Rng, notes: string[] = []): EngineResult {
   const res: EngineResult = {
-    outcome: 'auto', summary: '', roll: null, events: [], enemyActions: [], notes: [...notes],
+    outcome: 'auto', summary: '', roll: null, events: [], enemyActions: [], after: [], notes: [...notes],
     correction_note: d.correction_note, moved: null, defeated: false, victory: false, levelUp: null,
   };
   if (!d.allowed) {
@@ -344,12 +345,47 @@ export function resolveTurn(state: GameState, d: ArbiterDecision, rng: Rng, note
     state.flags.push(camp.victoryFlag);
     state.status = 'won';
     res.victory = true;
-    res.events.push('Победа: дети вернулись домой в Вересковку!');
+    res.after.push('Победа: дети вернулись домой в Вересковку!');
   }
 
   const parts: string[] = [];
   if (res.roll) parts.push(`${res.roll.label}: ${res.roll.total} против ${res.roll.dc} — ${res.roll.success ? (res.roll.critical ? 'критический успех' : 'успех') : 'провал'}.`);
   else parts.push('Действие выполнено без броска.');
   res.summary = parts.join(' ');
+  return res;
+}
+
+export const REST_RE = /^\s*(отдохн|отдых|привал|передохн|поспать|выспат|разбит\S* лагерь|перевести дух)/i;
+
+/** Отдых — без ИИ-арбитра. В безопасном месте или таверне — долгий (всё восстанавливается), иначе короткий. */
+export function resolveRest(state: GameState): EngineResult {
+  const res: EngineResult = {
+    outcome: 'auto', summary: '', roll: null, events: [], enemyActions: [], after: [], notes: [], correction_note: null,
+    moved: null, defeated: false, victory: false, levelUp: null,
+  };
+  const hero = state.hero;
+  if (livingHostiles(state).some((e) => !e.conditions.includes('unconscious'))) {
+    res.outcome = 'rejected';
+    res.correction_note = 'Рядом враги — отдохнуть не получится.';
+    res.notes.push(res.correction_note);
+    res.summary = 'Отдых невозможен: рядом враги.';
+    return res;
+  }
+  const def = locationDef(state);
+  const long = !!def.safe || def.tags.includes('tavern');
+  if (long) {
+    hero.hp = hero.maxHp;
+    for (const s of Object.values(hero.slots)) s.used = 0;
+    hero.conditions = [];
+    res.events.push(`Долгий отдых: хиты восстановлены полностью (${hero.hp}/${hero.maxHp})${Object.keys(hero.slots).length ? ', ячейки заклинаний восстановлены' : ''}.`);
+  } else {
+    const cls = CLASSES[hero.classId];
+    const heal = Math.max(1, Math.floor(cls.hitDie / 2) + 1 + mod(hero.abilities.CON));
+    const before = hero.hp;
+    hero.hp = Math.min(hero.maxHp, hero.hp + heal);
+    hero.conditions = hero.conditions.filter((c) => c !== 'prone' && c !== 'frightened');
+    res.events.push(`Короткий привал: восстановлено хитов ${hero.hp - before} (${hero.hp}/${hero.maxHp}). Ячейки заклинаний восстанавливает только долгий отдых в деревне.`);
+  }
+  res.summary = long ? 'Долгий отдых.' : 'Короткий привал.';
   return res;
 }

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#14110f">
+  <title>Хроники Подземелий</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Экран выбора героя -->
+  <section id="start" class="screen" hidden>
+    <header class="start-head">
+      <div class="sigil" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><path d="M32 4 58 19v26L32 60 6 45V19z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M32 4v56M6 19l52 26M58 19 6 45" stroke="currentColor" stroke-width="1" opacity=".45"/><text x="32" y="38" text-anchor="middle" font-size="16" fill="currentColor" font-family="Georgia,serif">20</text></svg>
+      </div>
+      <h1>Хроники<br>Подземелий</h1>
+      <p class="tagline">Ты говоришь, что делаешь. Мастер решает, что из этого выйдет.</p>
+    </header>
+    <div id="continue-box" hidden>
+      <button id="btn-continue" class="btn btn-primary wide">Продолжить приключение</button>
+    </div>
+    <h2 class="section-title">Кампания «Логово гоблинов»</h2>
+    <p class="muted small">Выбери героя:</p>
+    <div id="presets" class="presets" role="radiogroup" aria-label="Герой"></div>
+    <label class="field">
+      <span>Имя героя</span>
+      <input id="hero-name" maxlength="30" autocomplete="off" placeholder="Оставь пустым для имени по умолчанию">
+    </label>
+    <button id="btn-new" class="btn btn-primary wide" disabled>Начать приключение</button>
+    <p id="ai-mode" class="muted small center"></p>
+  </section>
+
+  <!-- Игровой экран -->
+  <section id="game" class="screen" hidden>
+    <header class="topbar">
+      <button id="btn-sheet" class="hero-chip" aria-label="Лист персонажа">
+        <span class="hero-name" id="hud-name"></span>
+        <span class="hpbar"><span id="hud-hp-fill"></span></span>
+        <span class="hp-text" id="hud-hp"></span>
+      </button>
+      <div class="loc" id="hud-loc"></div>
+      <button id="btn-energy" class="energy" aria-label="Энергия">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="currentColor"/></svg>
+        <span id="hud-energy"></span>
+      </button>
+    </header>
+
+    <main id="feed" class="feed" aria-live="polite"></main>
+
+    <footer class="composer">
+      <div id="choices" class="choices"></div>
+      <form id="action-form" class="action-row">
+        <textarea id="action" rows="1" maxlength="300" placeholder="Что ты делаешь?" enterkeyhint="send"></textarea>
+        <button id="btn-send" class="send" aria-label="Отправить">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20 21 12 3 4v6l12 2-12 2z" fill="currentColor"/></svg>
+        </button>
+      </form>
+      <nav class="tabs">
+        <button data-panel="sheet">Герой</button>
+        <button data-panel="journal">Журнал</button>
+        <button data-panel="menu">Меню</button>
+      </nav>
+    </footer>
+  </section>
+
+  <!-- Панели -->
+  <div id="sheet" class="panel" hidden>
+    <div class="panel-card">
+      <button class="panel-close" aria-label="Закрыть">×</button>
+      <div id="sheet-body"></div>
+    </div>
+  </div>
+  <div id="journal" class="panel" hidden>
+    <div class="panel-card">
+      <button class="panel-close" aria-label="Закрыть">×</button>
+      <h2>Журнал</h2>
+      <div id="journal-body"></div>
+    </div>
+  </div>
+  <div id="menu" class="panel" hidden>
+    <div class="panel-card">
+      <button class="panel-close" aria-label="Закрыть">×</button>
+      <h2>Меню</h2>
+      <button id="btn-to-start" class="btn wide">Новая игра</button>
+      <button id="btn-stats" class="btn wide">Расходы на ИИ</button>
+      <pre id="stats-body" class="stats" hidden></pre>
+      <p class="muted small">Прототип. Энергия: 1 ход = 1 ⚡, каждый день +30.</p>
+    </div>
+  </div>
+  <div id="energy-panel" class="panel" hidden>
+    <div class="panel-card">
+      <button class="panel-close" aria-label="Закрыть">×</button>
+      <h2>Энергия</h2>
+      <p class="energy-big"><span id="energy-now"></span> ⚡</p>
+      <p class="muted small">Каждый ход тратит энергию. Утром она восстанавливается.</p>
+      <button id="btn-ad" class="btn wide">Посмотреть рекламу <b>+<span id="ad-reward"></span> ⚡</b><small id="ads-left"></small></button>
+      <button id="btn-buy" class="btn btn-primary wide">Мешочек энергии <b>+<span id="pack-reward"></span> ⚡</b><small>149 ₽ · тестовая покупка</small></button>
+      <div id="ad-sim" class="ad-sim" hidden>
+        <div class="ad-box">Здесь будет реклама<br><span id="ad-count">3</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>

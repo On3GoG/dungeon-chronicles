@@ -1,0 +1,13 @@
+{
+  "name": "dungeon-chronicles",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Хроники Подземелий — текстовая RPG с ИИ-мастером (прототип)",
+  "type": "module",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.ts",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/server.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test \"tests/*.test.ts\""
+  }
+}

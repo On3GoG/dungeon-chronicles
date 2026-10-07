@@ -163,6 +163,7 @@ export interface GameState {
   history: TurnRecord[];
   turn: number;
   energy: { value: number; lastRefill: string };
+  ads?: { day: string; count: number };   // просмотры рекламы за день (прототип монетизации)
   status: 'playing' | 'won';
 }
 
