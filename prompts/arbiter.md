@@ -28,7 +28,7 @@ null или объект со ВСЕМИ полями: kind (ability_check | att
   Предметы, золото и опыт сверх <items_here> не выдавай, существ не придумывай.
 
 # Ответ
-ТОЛЬКО JSON без markdown. Все поля обязательны: allowed, action_type (skill_check attack spell item_use movement dialogue trivial impossible out_of_game), normalized_action (строка всегда), check, targets, weapon, spell, consumes, spell_slot, effects_on_success, effects_on_failure, correction_note. Пустое — [] или null.
+ТОЛЬКО JSON без markdown. Все поля обязательны: allowed, action_type (skill_check attack spell item_use movement dialogue trivial impossible out_of_game), normalized_action (строка всегда), check, targets, weapon, spell, consumes, spell_slot, effects_on_success, effects_on_failure, correction_note. Поля со значением null или [] можно не писать — так короче.
 
 Пример («Бросаю факел в бочки с маслом у гоблинов»):
 {"allowed": true, "action_type": "attack", "normalized_action": "Бросает горящий факел в бочки с маслом", "check": {"kind": "ability_check", "ability": "DEX", "skill": null, "dc": 10, "advantage": "advantage", "reason": "неподвижная цель, гоблины не видят"}, "targets": ["oil_barrels"], "weapon": null, "spell": null, "consumes": ["torch"], "spell_slot": null, "effects_on_success": [{"kind": "damage", "dice": "2d6", "damage_type": "огонь", "targets": ["goblin_1", "goblin_2"]}], "effects_on_failure": [{"kind": "flag", "flag": "alarm_raised", "description": "гоблины подняли тревогу"}], "correction_note": null}

@@ -45,7 +45,9 @@ export const config = {
     priceOut: num('NARRATOR_PRICE_OUT', 0.2), priceCached: num('NARRATOR_PRICE_CACHED', 0.025),
     temperature: num('NARRATOR_TEMPERATURE', 0.8), maxTokens: num('NARRATOR_MAX_TOKENS', 900),
   } as ModelCfg,
-  useJsonSchema: env('USE_JSON_SCHEMA', '1') !== '0',
+  // Яндекс принимает только «строгие» схемы (все поля обязательны) — для наших ответов это лишние токены.
+  // Формат держат промпт, проверка ответа и один повтор; по замеру 08.10 сбоев JSON не было.
+  useJsonSchema: env('USE_JSON_SCHEMA', '0') === '1',
   energy: { start: num('ENERGY_START', 50), daily: num('ENERGY_DAILY', 30), cap: num('ENERGY_CAP', 50), perTurn: num('ENERGY_PER_TURN', 1) },
   dataDir: env('DATA_DIR', join(ROOT, 'data')),
   timeoutMs: num('AI_TIMEOUT_MS', 30000),

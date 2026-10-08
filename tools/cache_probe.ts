@@ -39,12 +39,13 @@ async function call(label: string, user: string, schema: boolean) {
 }
 
 console.log(`Модель: ${model}. Системный промпт ${system.length} симв., сообщение ${userA.length} симв.\n`);
-await call('1. запрос со схемой JSON', userA, true);
-await call('2. тот же запрос со схемой, повтор', userA, true);
-await call('3. тот же запрос без схемы', userA, false);
-await call('4. без схемы, повтор', userA, false);
+const u1 = await call('1. ход арбитра', userA, false);
+await call('2. тот же запрос, повтор', userA, false);
 await new Promise((r) => setTimeout(r, 3000));
-await call('5. без схемы, повтор через 3 с', userA, false);
-await call('6. другой ход (та же система), без схемы', userB, false);
-await call('7. другой ход, со схемой', userB, true);
+await call('3. тот же запрос через 3 с', userA, false);
+await call('4. другой ход', userB, false);
+if (u1 && model === config.arbiter.model) {
+  const p = config.arbiter;
+  console.log(`\nОдин вызов арбитра ≈ ${((u1.prompt_tokens * p.priceIn + u1.completion_tokens * p.priceOut) / 1000).toFixed(3)} ₽ без кэша`);
+}
 console.log('\nСкопируйте эти строки и пришлите в чат.');

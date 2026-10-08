@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { YandexClient, AiError, costRub } from '../src/ai/client.ts';
+import { config } from '../src/config.ts';
 
 test('клиент Яндекса: адрес, заголовки, модель, схема; при 400 — повтор без схемы', async () => {
   const calls: { url: string; init: RequestInit }[] = [];
@@ -11,6 +12,7 @@ test('клиент Яндекса: адрес, заголовки, модель,
     return new Response(JSON.stringify({ choices: [{ message: { content: '{"a":1}' } }],
       usage: { prompt_tokens: 1000, completion_tokens: 200, prompt_tokens_details: { cached_tokens: 800 } } }), { status: 200 });
   }) as typeof fetch;
+  config.useJsonSchema = true;
   try {
     const c = new YandexClient('KEY', 'b1gfolder', 'https://ai.api.cloud.yandex.net/v1');
     const r = await c.chat('arbiter', [{ role: 'user', content: 'hi' }], { type: 'object' });
@@ -28,6 +30,7 @@ test('клиент Яндекса: адрес, заголовки, модель,
     assert.ok(Math.abs(costRub('arbiter', r, false) - 0.08) < 1e-9);
   } finally {
     globalThis.fetch = orig;
+    config.useJsonSchema = false;
   }
 });
 
