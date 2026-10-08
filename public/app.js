@@ -304,6 +304,7 @@ $('#btn-stats').addEventListener('click', async () => {
     `Ходов всего: ${s.turns}, с настоящим ИИ: ${s.realTurns}`,
     `Потрачено: ${s.totalRub} ₽, в среднем ${s.avgRubPerTurn} ₽ за ход`,
     `Среднее время ответа: ${(s.avgMs / 1000).toFixed(1)} с`,
+    `Токенов на ход: вход ${s.avgTokensIn}, выход ${s.avgTokensOut}, из кэша ${s.cachedShare}%`,
     `Повторы из-за плохого JSON: ${s.retries}, запасной вариант: ${s.fallbacks}`,
     `Исправлений стража: ${s.guardFixes}, отказов: ${s.rejected}, вырезано вставок: ${s.filtered}`,
   ].join('\n');

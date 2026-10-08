@@ -118,6 +118,7 @@ export interface CampaignDef {
   id: string;
   title: string;
   premise: string;          // для ИИ: завязка, злодей, цели
+  brief?: string;           // одна строка для арбитра
   skeleton: string;         // для ИИ: акты и ключевые события
   intro: string;            // первый текст игроку
   introChoices: string[];
@@ -145,7 +146,7 @@ export interface TurnRecord {
   choices: Choice[];
   notes: string[];          // пояснения игроку (исправления, отказы)
   events: string[];         // что сделал движок, коротко
-  cost?: { rub: number; tokensIn: number; tokensOut: number; ms: number };
+  cost?: { rub: number; tokensIn: number; tokensOut: number; cached?: number; ms: number };
 }
 
 export interface GameState {

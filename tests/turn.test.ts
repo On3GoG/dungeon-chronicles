@@ -28,7 +28,8 @@ test('валидатор арбитра чинит мелочи и ловит г
 test('контекст для модели содержит выходы, предметы и флаги', () => {
   const s = newGame('rogue', undefined, 50);
   const msg = buildUserMessage(s, 'Иду в таверну');
-  assert.ok(msg.includes('tavern:'));
+  assert.ok(msg.includes('tavern —'));
+  assert.ok(!buildUserMessage(s, 'x', { engine: 'e' }).includes('<story_flags>'), 'рассказчику флаги не нужны');
   assert.ok(msg.includes('<story_flags>'));
   assert.ok(msg.includes('thieves_tools'));
 });

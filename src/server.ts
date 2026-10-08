@@ -91,6 +91,9 @@ function stats() {
     turns: log.length, realTurns: real.length, totalRub: Math.round(rub.reduce((a, b) => a + b, 0) * 100) / 100,
     avgRubPerTurn: Math.round(avg(rub) * 10000) / 10000,
     avgMs: Math.round(avg(real.map((l) => Number(l.ms) || 0))),
+    avgTokensIn: Math.round(avg(real.map((l) => Number(l.tokensIn) || 0))),
+    avgTokensOut: Math.round(avg(real.map((l) => Number(l.tokensOut) || 0))),
+    cachedShare: (() => { const i = real.reduce((a, l) => a + (Number(l.tokensIn) || 0), 0); const c = real.reduce((a, l) => a + (Number(l.cached) || 0), 0); return i ? Math.round((c / i) * 100) : 0; })(),
     retries: log.filter((l) => Number(l.retries) > 0).length,
     fallbacks: log.filter((l) => Array.isArray(l.fallbacks) && (l.fallbacks as unknown[]).length).length,
     guardFixes: log.filter((l) => Array.isArray(l.fixes) && (l.fixes as unknown[]).length).length,
@@ -148,12 +151,12 @@ async function api(req: IncomingMessage, res: ServerResponse, path: string): Pro
       const out = await playTurn(s, String(b.action ?? ''), ai, defaultRng);
       saveGame(s);
       logTurn({ at: out.record.at, game: s.id, n: out.record.n, ai: ai.name, rub: out.record.cost?.rub, ms: out.record.cost?.ms,
-        tokensIn: out.record.cost?.tokensIn, tokensOut: out.record.cost?.tokensOut, outcome: out.record.outcome,
+        tokensIn: out.record.cost?.tokensIn, tokensOut: out.record.cost?.tokensOut, cached: out.record.cost?.cached, outcome: out.record.outcome,
         retries: out.debug.usage.retries, fallbacks: out.debug.usage.fallbacks, fixes: out.debug.fixes, filtered: out.debug.filtered,
         player: out.record.player, action: out.decision.action_type, normalized: out.decision.normalized_action });
       const cost = out.record.cost;
       console.log(`[ход ${out.record.n}] ${s.hero.name}: «${out.record.player.slice(0, 60)}» → ${out.decision.action_type}/${out.record.outcome}` +
-        `${cost ? ` · ${cost.rub.toFixed(3)} ₽ · ${(cost.ms / 1000).toFixed(1)} с` : ''}${out.debug.usage.retries ? ' · повтор' : ''}` +
+        `${cost ? ` · ${cost.rub.toFixed(3)} ₽ · вход ${cost.tokensIn} (кэш ${cost.cached ?? 0}) · ${(cost.ms / 1000).toFixed(1)} с` : ''}${out.debug.usage.retries ? ' · повтор' : ''}` +
         `${out.debug.usage.fallbacks.length ? ` · ЗАПАСНОЙ ВАРИАНТ: ${out.debug.usage.fallbacks.join(',')}` : ''}`);
       return send(res, 200, view(s));
     } finally {

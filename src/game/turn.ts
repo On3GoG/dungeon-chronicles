@@ -26,7 +26,7 @@ export class GameError extends Error {
   constructor(code: string, message: string) { super(message); this.code = code; }
 }
 
-interface Usage { rub: number; tokensIn: number; tokensOut: number; ms: number; retries: number; fallbacks: string[] }
+interface Usage { rub: number; tokensIn: number; tokensOut: number; cached: number; ms: number; retries: number; fallbacks: string[] }
 
 async function ask<T>(ai: AiClient, role: Role, user: string, hint: TurnHint, usage: Usage,
   validate: (raw: unknown) => { value: T | null; errors: string[] }): Promise<T | null> {
@@ -35,6 +35,7 @@ async function ask<T>(ai: AiClient, role: Role, user: string, hint: TurnHint, us
     const r: ChatResult = await ai.chat(role, messages, role === 'arbiter' ? ARBITER_SCHEMA : NARRATOR_SCHEMA, hint);
     usage.rub += costRub(role, r, ai.name === 'mock');
     usage.tokensIn += r.tokensIn;
+    usage.cached += r.cached;
     usage.tokensOut += r.tokensOut;
     usage.ms += r.ms;
     let errors: string[];
@@ -82,7 +83,7 @@ export async function playTurn(state: GameState, rawAction: string, ai: AiClient
   const pf = prefilterAction(rawAction);
   if (!pf.text) throw new GameError('empty', 'Опиши, что делает твой герой.');
 
-  const usage: Usage = { rub: 0, tokensIn: 0, tokensOut: 0, ms: 0, retries: 0, fallbacks: [] };
+  const usage: Usage = { rub: 0, tokensIn: 0, tokensOut: 0, cached: 0, ms: 0, retries: 0, fallbacks: [] };
   const hint: TurnHint = { state, playerText: pf.text };
 
   // 1. арбитр (ошибка сети здесь — ход не начат, состояние не тронуто). Отдых решает движок без арбитра.
@@ -124,7 +125,7 @@ export async function playTurn(state: GameState, rawAction: string, ai: AiClient
     n: state.turn, at: new Date().toISOString(), player: pf.text, normalized: g.decision.normalized_action,
     roll: engine.roll, outcome: engine.outcome, narration: narr.narration, choices: narr.choices,
     notes: [...new Set(engine.notes)], events: [...engine.events, ...engine.enemyActions, ...engine.after],
-    cost: { rub: Math.round(usage.rub * 10000) / 10000, tokensIn: usage.tokensIn, tokensOut: usage.tokensOut, ms: usage.ms },
+    cost: { rub: Math.round(usage.rub * 10000) / 10000, tokensIn: usage.tokensIn, tokensOut: usage.tokensOut, cached: usage.cached, ms: usage.ms },
   };
   state.history.push(record);
   if (state.history.length > MAX_HISTORY) state.history = state.history.slice(-MAX_HISTORY);
